@@ -35,6 +35,10 @@ test.group('HTTP API', (group) => {
         event_types: ['payment.completed'],
       })
 
+    if (response.status() !== 201) {
+      throw new Error(`Expected 201, got ${response.status()}: ${JSON.stringify(response.body())}`)
+    }
+
     response.assertStatus(201)
     response.assertBodyContains({
       client_id: 'acme',

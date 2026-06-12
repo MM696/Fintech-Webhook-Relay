@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, beforeCreate, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import type { DeliveryStatus } from '#types/delivery_status'
+import { jsonbColumn } from '#utils/jsonb_column'
 import DeliveryAttempt from '#models/delivery_attempt'
 import WebhookEndpoint from '#models/webhook_endpoint'
 
@@ -18,7 +19,7 @@ export default class WebhookDelivery extends BaseModel {
   @column()
   declare eventType: string
 
-  @column()
+  @column(jsonbColumn<Record<string, unknown>>())
   declare payload: Record<string, unknown>
 
   @column()

@@ -28,6 +28,12 @@ test.group('Event ingestion integration', (group) => {
         event_types: ['payment.completed'],
       })
 
+    if (endpointResponse.status() !== 201) {
+      throw new Error(
+        `Expected 201, got ${endpointResponse.status()}: ${JSON.stringify(endpointResponse.body())}`
+      )
+    }
+
     endpointResponse.assertStatus(201)
 
     const response = await client

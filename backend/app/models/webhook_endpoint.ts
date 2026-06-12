@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { DateTime } from 'luxon'
 import { BaseModel, beforeCreate, column, hasMany } from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
+import { jsonbColumn } from '#utils/jsonb_column'
 import WebhookDelivery from '#models/webhook_delivery'
 
 export default class WebhookEndpoint extends BaseModel {
@@ -21,7 +22,7 @@ export default class WebhookEndpoint extends BaseModel {
   })
   declare secret: string
 
-  @column()
+  @column(jsonbColumn<string[]>())
   declare eventTypes: string[]
 
   @column()
