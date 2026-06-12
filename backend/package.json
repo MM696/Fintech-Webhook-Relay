@@ -29,6 +29,7 @@
     "#middleware/*": "./app/middleware/*.js",
     "#transformers/*": "./app/transformers/*.js",
     "#validators/*": "./app/validators/*.js",
+    "#serializers/*": "./app/serializers/*.js",
     "#utils/*": "./app/utils/*.js",
     "#types/*": "./app/types/*.js",
     "#providers/*": "./providers/*.js",
@@ -69,6 +70,8 @@
     "@tuyau/core": "^1.2.2",
     "@vinejs/vine": "^4.4.0",
     "better-sqlite3": "^12.10.0",
+    "bullmq": "^5.78.0",
+    "ioredis": "^5.11.1",
     "luxon": "^3.7.2",
     "pg": "^8.21.0",
     "reflect-metadata": "^0.2.2"
