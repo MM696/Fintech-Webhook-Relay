@@ -1,10 +1,12 @@
 import env from '#start/env'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { test } from '@japa/runner'
+import { resetWebhookTables } from '#tests/helpers/reset_webhook_tables'
 
 test.group('HTTP API', (group) => {
   group.setup(async () => {
     await testUtils.db().migrate()
+    await resetWebhookTables()
   })
 
   test('GET /health reports dependency status', async ({ client }) => {

@@ -3,10 +3,12 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { test } from '@japa/runner'
 import WebhookDelivery from '#models/webhook_delivery'
 import { closeWebhookDeliveryQueue, getWebhookDeliveryQueue } from '#services/webhook_queue_service'
+import { resetWebhookTables } from '#tests/helpers/reset_webhook_tables'
 
 test.group('Event ingestion integration', (group) => {
   group.setup(async () => {
     await testUtils.db().migrate()
+    await resetWebhookTables()
   })
 
   group.each.teardown(async () => {
@@ -22,7 +24,7 @@ test.group('Event ingestion integration', (group) => {
       .post('/api/endpoints')
       .headers(authHeader)
       .json({
-        client_id: 'acme',
+        client_id: 'ingest-client',
         url: 'https://example.com/webhook',
         secret: 'signing-secret',
         event_types: ['payment.completed'],
@@ -40,7 +42,7 @@ test.group('Event ingestion integration', (group) => {
       .post('/api/events')
       .headers(authHeader)
       .json({
-        client_id: 'acme',
+        client_id: 'ingest-client',
         event_type: 'payment.completed',
         payload: { amount: 100, currency: 'USD' },
       })
