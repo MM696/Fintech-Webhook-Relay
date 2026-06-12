@@ -34,4 +34,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   // Redis (used by BullMQ worker in later phases)
   REDIS_HOST: Env.schema.string({ format: 'host' }),
   REDIS_PORT: Env.schema.number(),
+
+  // Worker
+  WORKER_CONCURRENCY: Env.schema.number.optional(),
 })
