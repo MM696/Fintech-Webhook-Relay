@@ -1,8 +1,5 @@
 import { Queue } from 'bullmq'
-import {
-  WEBHOOK_DELIVERY_QUEUE_NAME,
-  type WebhookDeliveryJobPayload,
-} from '#config/queue'
+import { WEBHOOK_DELIVERY_QUEUE_NAME, type WebhookDeliveryJobPayload } from '#config/queue'
 import { getRedisConnectionOptions } from '#services/redis_connection'
 
 let deliveryQueue: Queue<WebhookDeliveryJobPayload> | null = null
@@ -41,10 +38,7 @@ export async function getQueueDepth(): Promise<number> {
   )
 
   return (
-    (counts.waiting ?? 0) +
-    (counts.delayed ?? 0) +
-    (counts.active ?? 0) +
-    (counts.prioritized ?? 0)
+    (counts.waiting ?? 0) + (counts.delayed ?? 0) + (counts.active ?? 0) + (counts.prioritized ?? 0)
   )
 }
 

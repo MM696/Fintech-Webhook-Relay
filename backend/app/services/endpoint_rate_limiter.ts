@@ -1,8 +1,5 @@
-import { Redis } from 'ioredis'
-import {
-  ENDPOINT_RATE_LIMIT_MAX,
-  ENDPOINT_RATE_LIMIT_WINDOW_SEC,
-} from '#config/worker'
+import { type Redis } from 'ioredis'
+import { ENDPOINT_RATE_LIMIT_MAX, ENDPOINT_RATE_LIMIT_WINDOW_SEC } from '#config/worker'
 import { createAuxRedisConnection } from '#services/redis_connection'
 
 export type RateLimitResult = {

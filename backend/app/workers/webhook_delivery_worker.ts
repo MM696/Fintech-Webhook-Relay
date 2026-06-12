@@ -1,12 +1,11 @@
 import { DelayedError, Worker, type Job } from 'bullmq'
 import logger from '@adonisjs/core/services/logger'
-import {
-  WEBHOOK_DELIVERY_QUEUE_NAME,
-  type WebhookDeliveryJobPayload,
-} from '#config/queue'
+import WebhookDelivery from '#models/webhook_delivery'
+import { WEBHOOK_DELIVERY_QUEUE_NAME, type WebhookDeliveryJobPayload } from '#config/queue'
 import { getWorkerConcurrency } from '#config/worker'
 import { WebhookDeliveryProcessor } from '#services/webhook_delivery_processor'
 import { getRedisConnectionOptions } from '#services/redis_connection'
+import { logJobUnexpectedFailure } from '#utils/worker_logger'
 
 let worker: Worker<WebhookDeliveryJobPayload> | null = null
 let processor: WebhookDeliveryProcessor | null = null
@@ -34,17 +33,22 @@ export async function startWebhookDeliveryWorker(): Promise<Worker<WebhookDelive
     }
   )
 
-  worker.on('failed', (job, error) => {
+  worker.on('failed', async (job, error) => {
     if (error instanceof DelayedError) {
       return
     }
 
-    logger.error(
+    const deliveryId = job?.data.deliveryId ?? 'unknown'
+    const delivery = deliveryId !== 'unknown' ? await WebhookDelivery.find(deliveryId) : null
+
+    logJobUnexpectedFailure(
       {
-        deliveryId: job?.data.deliveryId,
-        error: error.message,
+        deliveryId,
+        endpointId: delivery?.endpointId ?? 'unknown',
+        attempt: delivery?.attempts ?? 0,
+        status: delivery?.status ?? 'failed',
       },
-      'Webhook delivery worker job failed unexpectedly'
+      error.message
     )
   })
 

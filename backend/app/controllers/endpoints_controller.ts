@@ -1,7 +1,5 @@
 import WebhookEndpoint from '#models/webhook_endpoint'
-import {
-  serializeEndpoint,
-} from '#serializers/webhook'
+import { serializeEndpoint } from '#serializers/webhook'
 import { encryptSecret } from '#utils/secret_encryption'
 import { createEndpointValidator, listEndpointsValidator } from '#validators/webhook'
 import type { HttpContext } from '@adonisjs/core/http'

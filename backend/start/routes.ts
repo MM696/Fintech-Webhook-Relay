@@ -14,10 +14,9 @@ const EndpointsController = () => import('#controllers/endpoints_controller')
 const EventsController = () => import('#controllers/events_controller')
 const DeliveriesController = () => import('#controllers/deliveries_controller')
 const MetricsController = () => import('#controllers/metrics_controller')
+const HealthController = () => import('#controllers/health_controller')
 
-router.get('/health', () => {
-  return { status: 'ok' }
-})
+router.get('/health', [HealthController, 'show'])
 
 router
   .group(() => {

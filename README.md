@@ -38,9 +38,9 @@ Production-oriented fintech webhook relay system. Accepts events via REST API, f
 - **Docker path:** Docker + Docker Compose
 - **Local path:** Node.js 20+, PostgreSQL 16+, Redis 7+
 
-## Quick start (Docker)
+## Run like production
 
-1. Copy environment files:
+One-time setup (from repo root):
 
 ```bash
 cp .env.example .env
@@ -48,33 +48,39 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-2. Generate an `APP_KEY` for AdonisJS and set it in the root `.env`:
+Generate `APP_KEY` and set it in **both** `.env` and `backend/.env`:
 
 ```bash
-cd backend
-node ace generate:key
-# Copy output into APP_KEY in repo root .env and backend/.env
+cd backend && node ace generate:key
 ```
 
-3. Align `API_SECRET_KEY` across root `.env`, `backend/.env`, and `frontend/.env` (`VITE_API_SECRET_KEY`).
+Set the same `API_SECRET_KEY` in `.env`, `backend/.env`, and `frontend/.env` (`VITE_API_SECRET_KEY`).
 
-4. Start infrastructure + API + worker:
+### 1. Start backend stack (production build)
 
 ```bash
 docker compose up --build
 ```
 
-Services:
+This starts **PostgreSQL**, **Redis**, the **API** (migrations run automatically), and the **Worker** as separate containers — the same topology used in production.
 
-| Service  | URL / Port        |
-|----------|-------------------|
-| API      | http://localhost:3333 |
-| Postgres | localhost:5432    |
-| Redis    | localhost:6379    |
+| Service | Where it runs |
+|---------|----------------|
+| **API** | http://localhost:3333 |
+| **Worker** | Background service (no URL — processes `webhook-deliveries` queue) |
+| Postgres | `localhost:5432` (internal dependency) |
+| Redis | `localhost:6379` (internal dependency) |
 
-The API container waits for PostgreSQL and Redis, runs migrations, then starts. The worker starts after the API is healthy (migrations complete).
+Verify the stack:
 
-5. Start the frontend (separate terminal):
+```bash
+curl http://localhost:3333/health
+# { "status": "ok", "postgres": true, "redis": true }
+```
+
+### 2. Start the frontend
+
+In a **second terminal**:
 
 ```bash
 cd frontend
@@ -82,7 +88,35 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+| Service | URL |
+|---------|-----|
+| **Frontend** | http://localhost:5173 |
+
+The dashboard talks to the API at `http://localhost:3333` (configured in `frontend/.env`).
+
+### What you should see
+
+```
+docker compose up --build
+  → postgres, redis, api, worker all healthy
+
+http://localhost:3333/health   → API + dependencies OK
+http://localhost:3333/api/...    → Bearer-authenticated REST API
+http://localhost:5173          → Vue dashboard (Endpoints, Events, Deliveries)
+
+worker container logs           → structured delivery logs (deliveryId, endpointId, attempt, status)
+```
+
+---
+
+## Quick start (Docker) — details
+
+The steps above are the full path. Additional notes:
+
+- The API container waits for PostgreSQL and Redis healthchecks, runs migrations, then listens on port **3333**.
+- The worker container starts only after the API is healthy (migrations complete).
+- To run in the background: `docker compose up --build -d`
+- To tail worker logs: `docker compose logs -f worker`
 
 ## Local development (without Docker)
 
@@ -330,8 +364,10 @@ npm run preview  # preview production build
 
 ```bash
 curl http://localhost:3333/health
-# { "status": "ok" }
+# { "status": "ok", "postgres": true, "redis": true }
 ```
+
+Returns HTTP `503` with `"status": "degraded"` when PostgreSQL or Redis is unreachable (used by Docker/Kubernetes probes).
 
 ## Design decisions
 

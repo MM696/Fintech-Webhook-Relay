@@ -8,6 +8,7 @@ export const controllers = {
   Deliveries: () => import('#controllers/deliveries_controller'),
   Endpoints: () => import('#controllers/endpoints_controller'),
   Events: () => import('#controllers/events_controller'),
+  Health: () => import('#controllers/health_controller'),
   Metrics: () => import('#controllers/metrics_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),
   Profile: () => import('#controllers/profile_controller'),

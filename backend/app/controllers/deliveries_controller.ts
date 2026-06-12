@@ -1,9 +1,6 @@
 import WebhookDelivery from '#models/webhook_delivery'
 import { enqueueDeliveryJob } from '#services/webhook_queue_service'
-import {
-  serializeDeliveryDetail,
-  serializeDeliveryListItem,
-} from '#serializers/webhook'
+import { serializeDeliveryDetail, serializeDeliveryListItem } from '#serializers/webhook'
 import { listDeliveriesValidator } from '#validators/webhook'
 import type { HttpContext } from '@adonisjs/core/http'
 
@@ -13,9 +10,7 @@ export default class DeliveriesController {
       data: request.qs(),
     })
 
-    const query = WebhookDelivery.query()
-      .preload('endpoint')
-      .orderBy('created_at', 'desc')
+    const query = WebhookDelivery.query().preload('endpoint').orderBy('created_at', 'desc')
 
     if (filters.status) {
       query.where('status', filters.status)

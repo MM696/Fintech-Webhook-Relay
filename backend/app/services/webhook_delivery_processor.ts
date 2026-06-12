@@ -1,22 +1,23 @@
 import { DateTime } from 'luxon'
-import logger from '@adonisjs/core/services/logger'
 import DeliveryAttempt from '#models/delivery_attempt'
 import WebhookDelivery from '#models/webhook_delivery'
 import WebhookEndpoint from '#models/webhook_endpoint'
 import { EndpointRateLimiter } from '#services/endpoint_rate_limiter'
 import { enqueueDeliveryJobDelayed } from '#services/webhook_queue_service'
-import {
-  buildDeliveryEnvelope,
-  serializeDeliveryEnvelope,
-} from '#utils/delivery_envelope'
+import { buildDeliveryEnvelope, serializeDeliveryEnvelope } from '#utils/delivery_envelope'
 import { formatSignatureHeader, signPayload } from '#utils/hmac'
 import { getRetryDelayMs, parseRetryAfterMs } from '#utils/retry_schedule'
 import { decryptSecret } from '#utils/secret_encryption'
 import {
-  HTTP_TIMEOUT_MS,
-  MAX_DELIVERY_ATTEMPTS,
-  RATE_LIMIT_DEFAULT_RETRY_MS,
-} from '#config/worker'
+  logDeliveryNotFound,
+  logJobAbandoned,
+  logJobRateLimited,
+  logJobRetryScheduled,
+  logJobSkipped,
+  logJobStart,
+  logJobSuccess,
+} from '#utils/worker_logger'
+import { HTTP_TIMEOUT_MS, MAX_DELIVERY_ATTEMPTS, RATE_LIMIT_DEFAULT_RETRY_MS } from '#config/worker'
 
 export type DeliveryProcessorResult =
   | { outcome: 'completed' }
@@ -30,14 +31,19 @@ export class WebhookDeliveryProcessor {
     const delivery = await WebhookDelivery.find(deliveryId)
 
     if (!delivery) {
-      logger.warn({ deliveryId }, 'Delivery not found, skipping job')
+      logDeliveryNotFound(deliveryId)
       return { outcome: 'skipped' }
     }
 
     if (delivery.status === 'delivered' || delivery.status === 'abandoned') {
-      logger.info(
-        { deliveryId, endpointId: delivery.endpointId, status: delivery.status },
-        'Delivery already terminal, skipping job'
+      logJobSkipped(
+        {
+          deliveryId: delivery.id,
+          endpointId: delivery.endpointId,
+          attempt: delivery.attempts,
+          status: delivery.status,
+        },
+        'Delivery already terminal'
       )
       return { outcome: 'skipped' }
     }
@@ -45,27 +51,21 @@ export class WebhookDeliveryProcessor {
     const endpoint = await WebhookEndpoint.find(delivery.endpointId)
 
     if (!endpoint || !endpoint.isActive) {
-      await this.markAbandoned(
-        delivery,
-        null,
-        'Endpoint inactive or not found',
-        delivery.attempts
-      )
+      await this.markAbandoned(delivery, null, 'Endpoint inactive or not found', delivery.attempts)
       return { outcome: 'completed' }
     }
 
     const rateLimit = await this.rateLimiter.check(endpoint.id)
 
     if (!rateLimit.allowed) {
-      logger.info(
+      logJobRateLimited(
         {
-          deliveryId,
+          deliveryId: delivery.id,
           endpointId: endpoint.id,
           attempt: delivery.attempts,
           status: delivery.status,
-          delayMs: rateLimit.retryAfterMs,
         },
-        'Endpoint rate limit reached, delaying job'
+        { delayMs: rateLimit.retryAfterMs }
       )
 
       return { outcome: 'delayed', delayMs: rateLimit.retryAfterMs }
@@ -82,15 +82,12 @@ export class WebhookDeliveryProcessor {
     delivery.nextAttemptAt = null
     await delivery.save()
 
-    logger.info(
-      {
-        deliveryId: delivery.id,
-        endpointId: endpoint.id,
-        attempt: attemptNumber,
-        status: 'delivering',
-      },
-      'Webhook delivery job started'
-    )
+    logJobStart({
+      deliveryId: delivery.id,
+      endpointId: endpoint.id,
+      attempt: attemptNumber,
+      status: 'delivering',
+    })
 
     try {
       const envelope = buildDeliveryEnvelope(delivery)
@@ -157,8 +154,7 @@ export class WebhookDeliveryProcessor {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown delivery error'
       const isTimeout =
-        error instanceof Error &&
-        (error.name === 'TimeoutError' || error.name === 'AbortError')
+        error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')
 
       await this.recordAttempt(
         delivery.id,
@@ -216,15 +212,12 @@ export class WebhookDeliveryProcessor {
     delivery.nextAttemptAt = null
     await delivery.save()
 
-    logger.info(
-      {
-        deliveryId: delivery.id,
-        endpointId,
-        attempt,
-        status: 'delivered',
-      },
-      'Webhook delivery job succeeded'
-    )
+    logJobSuccess({
+      deliveryId: delivery.id,
+      endpointId,
+      attempt,
+      status: 'delivered',
+    })
   }
 
   private async markAbandoned(
@@ -240,15 +233,14 @@ export class WebhookDeliveryProcessor {
     delivery.nextAttemptAt = null
     await delivery.save()
 
-    logger.error(
+    logJobAbandoned(
       {
         deliveryId: delivery.id,
         endpointId: endpointId ?? delivery.endpointId,
         attempt,
         status: 'abandoned',
-        error,
       },
-      'Webhook delivery job abandoned'
+      error
     )
   }
 
@@ -275,16 +267,17 @@ export class WebhookDeliveryProcessor {
 
     await enqueueDeliveryJobDelayed(delivery.id, delayMs)
 
-    logger.warn(
+    logJobRetryScheduled(
       {
         deliveryId: delivery.id,
         endpointId,
         attempt,
         status: 'failed',
+      },
+      {
         nextAttemptAt: delivery.nextAttemptAt.toISO(),
         error,
-      },
-      'Webhook delivery job failed, scheduled retry'
+      }
     )
   }
 }
