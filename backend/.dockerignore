@@ -6,5 +6,4 @@ tmp
 !.env.example
 .git
 .gitignore
-tests
 *.md

@@ -6,29 +6,59 @@ import type { ApiDefinition } from './tree.d.ts'
 const placeholder: any = {}
 
 const routes = {
-  'auth.new_account.store': {
-    methods: ["POST"],
-    pattern: '/api/v1/auth/signup',
-    tokens: [{"old":"/api/v1/auth/signup","type":0,"val":"api","end":""},{"old":"/api/v1/auth/signup","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/signup","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/signup","type":0,"val":"signup","end":""}],
-    types: placeholder as Registry['auth.new_account.store']['types'],
-  },
-  'auth.access_tokens.store': {
-    methods: ["POST"],
-    pattern: '/api/v1/auth/login',
-    tokens: [{"old":"/api/v1/auth/login","type":0,"val":"api","end":""},{"old":"/api/v1/auth/login","type":0,"val":"v1","end":""},{"old":"/api/v1/auth/login","type":0,"val":"auth","end":""},{"old":"/api/v1/auth/login","type":0,"val":"login","end":""}],
-    types: placeholder as Registry['auth.access_tokens.store']['types'],
-  },
-  'profile.profile.show': {
+  'health.show': {
     methods: ["GET","HEAD"],
-    pattern: '/api/v1/account/profile',
-    tokens: [{"old":"/api/v1/account/profile","type":0,"val":"api","end":""},{"old":"/api/v1/account/profile","type":0,"val":"v1","end":""},{"old":"/api/v1/account/profile","type":0,"val":"account","end":""},{"old":"/api/v1/account/profile","type":0,"val":"profile","end":""}],
-    types: placeholder as Registry['profile.profile.show']['types'],
+    pattern: '/health',
+    tokens: [{"old":"/health","type":0,"val":"health","end":""}],
+    types: placeholder as Registry['health.show']['types'],
   },
-  'profile.access_tokens.destroy': {
+  'endpoints.store': {
     methods: ["POST"],
-    pattern: '/api/v1/account/logout',
-    tokens: [{"old":"/api/v1/account/logout","type":0,"val":"api","end":""},{"old":"/api/v1/account/logout","type":0,"val":"v1","end":""},{"old":"/api/v1/account/logout","type":0,"val":"account","end":""},{"old":"/api/v1/account/logout","type":0,"val":"logout","end":""}],
-    types: placeholder as Registry['profile.access_tokens.destroy']['types'],
+    pattern: '/api/endpoints',
+    tokens: [{"old":"/api/endpoints","type":0,"val":"api","end":""},{"old":"/api/endpoints","type":0,"val":"endpoints","end":""}],
+    types: placeholder as Registry['endpoints.store']['types'],
+  },
+  'endpoints.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/endpoints',
+    tokens: [{"old":"/api/endpoints","type":0,"val":"api","end":""},{"old":"/api/endpoints","type":0,"val":"endpoints","end":""}],
+    types: placeholder as Registry['endpoints.index']['types'],
+  },
+  'endpoints.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/endpoints/:id',
+    tokens: [{"old":"/api/endpoints/:id","type":0,"val":"api","end":""},{"old":"/api/endpoints/:id","type":0,"val":"endpoints","end":""},{"old":"/api/endpoints/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['endpoints.destroy']['types'],
+  },
+  'events.store': {
+    methods: ["POST"],
+    pattern: '/api/events',
+    tokens: [{"old":"/api/events","type":0,"val":"api","end":""},{"old":"/api/events","type":0,"val":"events","end":""}],
+    types: placeholder as Registry['events.store']['types'],
+  },
+  'deliveries.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/deliveries',
+    tokens: [{"old":"/api/deliveries","type":0,"val":"api","end":""},{"old":"/api/deliveries","type":0,"val":"deliveries","end":""}],
+    types: placeholder as Registry['deliveries.index']['types'],
+  },
+  'deliveries.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/deliveries/:id',
+    tokens: [{"old":"/api/deliveries/:id","type":0,"val":"api","end":""},{"old":"/api/deliveries/:id","type":0,"val":"deliveries","end":""},{"old":"/api/deliveries/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['deliveries.show']['types'],
+  },
+  'deliveries.retry': {
+    methods: ["POST"],
+    pattern: '/api/deliveries/:id/retry',
+    tokens: [{"old":"/api/deliveries/:id/retry","type":0,"val":"api","end":""},{"old":"/api/deliveries/:id/retry","type":0,"val":"deliveries","end":""},{"old":"/api/deliveries/:id/retry","type":1,"val":"id","end":""},{"old":"/api/deliveries/:id/retry","type":0,"val":"retry","end":""}],
+    types: placeholder as Registry['deliveries.retry']['types'],
+  },
+  'metrics.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/metrics',
+    tokens: [{"old":"/api/metrics","type":0,"val":"api","end":""},{"old":"/api/metrics","type":0,"val":"metrics","end":""}],
+    types: placeholder as Registry['metrics.show']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

@@ -4,21 +4,37 @@ type ParamValue = string | number | bigint | boolean
 
 export type ScannedRoutes = {
   ALL: {
-    'auth.new_account.store': { paramsTuple?: []; params?: {} }
-    'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
-    'profile.profile.show': { paramsTuple?: []; params?: {} }
-    'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
+    'health.show': { paramsTuple?: []; params?: {} }
+    'endpoints.store': { paramsTuple?: []; params?: {} }
+    'endpoints.index': { paramsTuple?: []; params?: {} }
+    'endpoints.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'events.store': { paramsTuple?: []; params?: {} }
+    'deliveries.index': { paramsTuple?: []; params?: {} }
+    'deliveries.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'deliveries.retry': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'metrics.show': { paramsTuple?: []; params?: {} }
   }
   GET: {
-    'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'health.show': { paramsTuple?: []; params?: {} }
+    'endpoints.index': { paramsTuple?: []; params?: {} }
+    'deliveries.index': { paramsTuple?: []; params?: {} }
+    'deliveries.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'metrics.show': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
-    'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'health.show': { paramsTuple?: []; params?: {} }
+    'endpoints.index': { paramsTuple?: []; params?: {} }
+    'deliveries.index': { paramsTuple?: []; params?: {} }
+    'deliveries.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'metrics.show': { paramsTuple?: []; params?: {} }
   }
   POST: {
-    'auth.new_account.store': { paramsTuple?: []; params?: {} }
-    'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
-    'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
+    'endpoints.store': { paramsTuple?: []; params?: {} }
+    'events.store': { paramsTuple?: []; params?: {} }
+    'deliveries.retry': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+  DELETE: {
+    'endpoints.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {
