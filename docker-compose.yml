@@ -54,6 +54,7 @@ services:
       APP_KEY: ${APP_KEY:?Set APP_KEY in .env}
       APP_URL: http://localhost:3333
       API_SECRET_KEY: ${API_SECRET_KEY:-dev-secret-key-change-in-production}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: ${POSTGRES_USER:-postgres}

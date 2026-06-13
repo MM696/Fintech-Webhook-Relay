@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { ApiError, getFieldError } from '../api/client'
 import {
   createEndpoint,
@@ -8,6 +8,8 @@ import {
 } from '../api/webhooks'
 import type { WebhookEndpoint } from '../types/api'
 import StatusBadge from '../components/StatusBadge.vue'
+
+const CLIENT_ID_STORAGE_KEY = 'endpoints:lastClientId'
 
 const clientId = ref('')
 const url = ref('')
@@ -21,6 +23,10 @@ const submitting = ref(false)
 const errorMessage = ref<string | null>(null)
 const fieldErrors = ref<Record<string, string[]>>({})
 const successMessage = ref<string | null>(null)
+
+function rememberClientId(value: string): void {
+  sessionStorage.setItem(CLIENT_ID_STORAGE_KEY, value)
+}
 
 function fieldError(field: string): string | null {
   return getFieldError(fieldErrors.value, field)
@@ -38,6 +44,7 @@ async function loadEndpoints(): Promise<void> {
 
   try {
     endpoints.value = await listEndpoints(listClientId.value.trim())
+    rememberClientId(listClientId.value.trim())
   } catch (error) {
     endpoints.value = []
 
@@ -51,6 +58,18 @@ async function loadEndpoints(): Promise<void> {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  const savedClientId = sessionStorage.getItem(CLIENT_ID_STORAGE_KEY)
+
+  if (!savedClientId) {
+    return
+  }
+
+  listClientId.value = savedClientId
+  clientId.value = savedClientId
+  void loadEndpoints()
+})
 
 async function submitEndpoint(): Promise<void> {
   submitting.value = true

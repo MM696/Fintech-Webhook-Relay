@@ -56,6 +56,8 @@ cd backend && node ace generate:key
 
 Set the same `API_SECRET_KEY` in `.env`, `backend/.env`, and `frontend/.env` (`VITE_API_SECRET_KEY`).
 
+For Docker, also set `CORS_ORIGIN=http://localhost:5173` in root `.env` so the browser dashboard can call the API (see [Troubleshooting](#troubleshooting) if requests work in `curl` but fail in the browser).
+
 ### 1. Start backend stack (production build)
 
 ```bash
@@ -169,6 +171,7 @@ npm run dev
 |----------|-------------|
 | `APP_KEY` | AdonisJS encryption key (required) |
 | `API_SECRET_KEY` | Bearer token for all `/api` routes |
+| `CORS_ORIGIN` | Allowed browser origin for the dashboard (default: `http://localhost:5173`) |
 | `POSTGRES_USER` | PostgreSQL user (default: `postgres`) |
 | `POSTGRES_PASSWORD` | PostgreSQL password |
 | `POSTGRES_DB` | Database name (default: `webhook_relay`) |
@@ -183,6 +186,7 @@ npm run dev
 | `APP_KEY` | Same as root `.env` |
 | `APP_URL` | Public API URL |
 | `API_SECRET_KEY` | Bearer token |
+| `CORS_ORIGIN` | Allowed browser origins (comma-separated). Required when `NODE_ENV=production` (e.g. Docker API) |
 | `DB_HOST` | PostgreSQL host |
 | `DB_PORT` | PostgreSQL port |
 | `DB_USER` | PostgreSQL user |
@@ -207,6 +211,10 @@ All `/api/*` routes require:
 ```
 Authorization: Bearer <API_SECRET_KEY>
 ```
+
+This is a **shared API secret**, not a per-user login token. There is no signup or login flow in this project — the dashboard sends `VITE_API_SECRET_KEY` automatically on every request. Set the same value in `.env`, `backend/.env`, and `frontend/.env`.
+
+The AdonisJS starter kit includes unused user-auth controllers; they are not wired to routes.
 
 ## API examples
 
@@ -329,6 +337,13 @@ Routes:
 | `/deliveries` | Monitor deliveries (polls every 5s) |
 | `/deliveries/:id` | Delivery detail + retry |
 
+### Dashboard notes
+
+- **Register Endpoint** means registering a **webhook subscriber URL** (client ID, URL, secret, event types). It is not user account registration.
+- The endpoints table is scoped by **Client ID**. The API lists endpoints with `GET /api/endpoints?client_id=<id>` — there is no "list all" endpoint.
+- On `/endpoints`, enter a Client ID in the list section and click **Refresh**, or register a new endpoint (which auto-loads that client). The page remembers the last Client ID in `sessionStorage` and reloads it on refresh.
+- Restart the Vite dev server after changing `frontend/.env` — env vars are read at startup.
+
 ```bash
 cd frontend
 npm install
@@ -336,6 +351,41 @@ npm run dev      # development
 npm run build    # production build
 npm run preview  # preview production build
 ```
+
+## Troubleshooting
+
+### `401 Unauthorized` from the dashboard
+
+`VITE_API_SECRET_KEY` in `frontend/.env` must exactly match `API_SECRET_KEY` in the backend (and root `.env` when using Docker). After changing it, restart the frontend dev server.
+
+### `curl` works but the browser fails
+
+The Docker API runs with `NODE_ENV=production`, which blocks cross-origin browser requests unless `CORS_ORIGIN` is set. Ensure root `.env` includes:
+
+```env
+CORS_ORIGIN=http://localhost:5173
+```
+
+Then rebuild the API container:
+
+```bash
+docker compose up --build -d api
+```
+
+`curl` is not subject to CORS, so API calls from the terminal can succeed while the browser is blocked.
+
+### Endpoints disappear after reloading the page
+
+Endpoints are still in the database. The list only loads when a Client ID is provided. Enter your Client ID (e.g. `acme`) and click **Refresh**, or register a new endpoint under that client. The page restores the last Client ID from `sessionStorage` when possible.
+
+### Local `npm run dev` backend vs Docker
+
+| Setup | API URL | Notes |
+|-------|---------|-------|
+| Docker (`docker compose up`) | `http://localhost:3333` | Recommended. Migrations run automatically. Set `VITE_API_BASE_URL` to this. |
+| Local `npm run dev` | Often `http://localhost:3333`, but HMR may use another port | Requires PostgreSQL + Redis, `node ace migration:run`, and matching `backend/.env`. Point `VITE_API_BASE_URL` at the port shown in the terminal. |
+
+If the frontend targets the wrong port or backend, requests fail or return database errors even when Docker is healthy on `3333`.
 
 ## Scripts reference
 
@@ -349,7 +399,21 @@ npm run preview  # preview production build
 | `npm start` | Run built API |
 | `npm run worker` | Run built worker |
 | `node ace migration:run` | Run migrations |
+| `npm test` | Run unit + functional tests (requires `.env.test`; see below) |
 | `npm run typecheck` | TypeScript check |
+
+#### Running tests locally
+
+Tests load `backend/.env.test` when `NODE_ENV=test`. That file is gitignored, so create it once:
+
+```bash
+cd backend
+cp .env.test.example .env.test
+# Adjust DB_PASSWORD if your local Postgres password differs
+npm test
+```
+
+CI copies `.env.test.example` automatically before `npm test`.
 
 ### Docker
 
