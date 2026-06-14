@@ -1,0 +1,10 @@
+# Shell scripts must use LF
+*.sh text eol=lf
+
+# Docker-related files should use LF
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf
+
+# Windows scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
