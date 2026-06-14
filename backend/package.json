@@ -9,9 +9,9 @@
     "./registry": "./.adonisjs/client/registry/index.ts"
   },
   "scripts": {
-    "start": "node bin/server.js",
-    "build": "node ace build",
-    "dev": "node ace serve --hmr",
+    "start": "node init && node bin/server.js",
+    "build": "node init && node ace build",
+    "dev": "node init && node ace serve --hmr",
     "worker": "node bin/worker.js",
     "worker:dev": "node ace webhook:worker",
     "test": "node ace test",
