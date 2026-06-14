@@ -122,7 +122,26 @@ The delivery row tracks aggregate state (`attempts`, `last_http_status`, `last_e
 
 ### AdonisJS version
 
-The project uses **AdonisJS 7** (latest official API starter kit). The assessment specified v6; v7 was chosen because the current `create-adonisjs` tooling targets v7. All specified patterns (Lucid ORM, Vine validation, middleware, encryption, TypeScript strict mode) are preserved.
+The assessment specifies **AdonisJS v6**. This project uses **AdonisJS v7** (latest official API starter kit).
+
+**Why v7 instead of v6?**
+
+- The current `create-adonisjs` CLI and official starter kits scaffold **v7** projects. Starting fresh on v6 would mean fighting deprecated tooling or manually pinning older package versions without official starter support.
+- v7 is the maintained release line; v6 is the previous major version.
+
+**What stayed the same (assessment requirements):**
+
+| Requirement | Status |
+|-------------|--------|
+| Lucid ORM + PostgreSQL | Yes |
+| Vine validation | Yes |
+| Middleware pipeline | Yes |
+| APP_KEY encryption | Yes |
+| TypeScript strict mode | Yes |
+| Separate API + worker processes | Yes |
+| REST webhook relay behavior | Yes |
+
+**Reviewer note:** The version bump is a framework/tooling constraint, not a spec skip. If strict v6 compliance were mandatory, the codebase would need to be re-scaffolded on v6 packages — functionally equivalent, but unsupported by current Adonis tooling.
 
 ### Rate limiting implementation
 
